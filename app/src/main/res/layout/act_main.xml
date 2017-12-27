@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:background="@color/white"
+    android:id="@+id/rl_root">
+
+    <TextView
+        android:id="@+id/title_textview"
+        android:layout_width="match_parent"
+        android:layout_height="48dip"
+        android:text="噪音测试仪"
+        android:textColor="#FFFFFF"
+        android:textSize="20sp"
+        android:background="@color/colorAccent"
+        android:gravity="center"/>
+
+
+    <LinearLayout
+        android:layout_below="@+id/title_textview"
+        android:id="@+id/image_loca"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <com.mangoer.noisedetection.view.NoiseboardView
+            android:id="@+id/noiseboardView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:bigSliceCount="10"
+            app:unitText="DB"
+            app:maxValue="150"
+            app:measureTextSize="10sp"
+            app:radius="110dp"
+            app:startAngle="175"
+            app:stripeWidth="40dp"
+            app:sweepAngle="190"/>
+
+        <Button
+            android:id="@+id/bt_start"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/shape"
+            android:text="开始测试"
+            android:textColor="@color/white"/>
+
+        <TextView
+            android:id="@+id/text_vip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:lines="1"
+            android:textColor="#00733C"
+            android:textSize="16dp"
+            android:layout_marginTop="5dp"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/chart"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_below="@id/image_loca"
+        android:layout_marginLeft="15dp"
+        android:layout_marginTop="20dp"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="分贝图"
+            android:textSize="14sp"
+            android:gravity="center"/>
+
+        <LinearLayout
+            android:id="@+id/left_temperature_curve"
+            android:layout_width="fill_parent"
+            android:layout_height="200dp"
+            android:orientation="horizontal">
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+</RelativeLayout>

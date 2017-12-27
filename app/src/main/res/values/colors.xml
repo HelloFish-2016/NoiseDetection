@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#303F9F</color>
+
+    <color name="white">#FFFFFF</color>
+    <color name="black">#333333</color>
+
+    <color name="stripeColor">#607D8B</color>
+    <color name="pointCircleColor">#e4e9e9</color>
+    
+    <color name="red_value">#c72424</color>
+    <color name="orange_value">#d38324</color>
+    <color name="yellow_value">#ddd843</color>
+    <color name="green_value">#58ce41</color>
+
+</resources>
