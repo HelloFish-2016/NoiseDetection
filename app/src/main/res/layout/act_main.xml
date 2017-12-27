@@ -3,8 +3,7 @@
                 xmlns:app="http://schemas.android.com/apk/res-auto"
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
-                android:background="@color/white"
-    android:id="@+id/rl_root">
+                android:id="@+id/rl_root">
 
     <TextView
         android:id="@+id/title_textview"
@@ -33,11 +32,9 @@
             app:bigSliceCount="10"
             app:unitText="DB"
             app:maxValue="150"
-            app:measureTextSize="10sp"
+            app:scaleTextSize="10sp"
             app:radius="110dp"
-            app:startAngle="175"
-            app:stripeWidth="40dp"
-            app:sweepAngle="190"/>
+            app:ribbonWidth="40dp"/>
 
         <Button
             android:id="@+id/bt_start"

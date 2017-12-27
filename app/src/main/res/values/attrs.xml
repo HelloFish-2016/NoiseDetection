@@ -3,20 +3,14 @@
 
     <declare-styleable name="NoiseboardView">
         <attr name="radius" format="dimension"/>     <!--扇形半径-->
-        <attr name="startAngle" format="integer"/> <!-- 起始角度-->
-        <attr name="sweepAngle" format="integer"/>  <!--绘制角度-->
-
         <attr name="bigSliceCount" format="integer"/> <!-- 长刻度条数-->
         <attr name="sliceCountInOneBigSlice" format="integer"/> <!-- 每两条长刻度之间分条数-->
-
-        <attr name="arcColor" format="color"/> <!--刻度颜色-->
-        <attr name="measureTextSize" format="dimension"/> <!--刻度字体大小-->
-
+        <attr name="scaleColor" format="color"/> <!--刻度颜色-->
+        <attr name="scaleTextSize" format="dimension"/> <!--刻度字体大小-->
         <attr name="unitText" format="string"/> <!--单位-->
         <attr name="unitTextSize" format="string"/> <!--单位字体大小-->
         <attr name="minValue" format="integer"/> <!--最小值-->
         <attr name="maxValue" format="integer"/> <!--最大值-->
-
-        <attr name="stripeWidth" format="dimension"/> <!--色带宽度-->
+        <attr name="ribbonWidth" format="dimension"/> <!--色带宽度-->
     </declare-styleable>
 </resources>

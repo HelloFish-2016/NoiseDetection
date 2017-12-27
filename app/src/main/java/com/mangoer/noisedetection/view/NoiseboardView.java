@@ -24,30 +24,30 @@ import com.mangoer.noisedetection.R;
  */
 public class NoiseboardView extends View {
 
+    final String TAG = "NoiseboardView";
+
     private int mRadius; // 圆弧半径
-    private int mStartAngle; // 起始角度
-    private int mSweepAngle; // 扫过角度
     private int mBigSliceCount; // 大份数
-    private int mSliceCountInOneBigSlice; // 划分一大份长的小份数
-
-    private int mArcColor; // 刻度颜色
-    private int mMeasureTextSize; // 刻度字体大小
-
+    private int mScaleCountInOneBigScale; // 相邻两个大刻度之间的小刻度个数
+    private int mScaleColor; // 刻度颜色
+    private int mScaleTextSize; // 刻度字体大小
     private String mUnitText = ""; // 单位
     private int mUnitTextSize; // 单位字体大小
-
     private int mMinValue; // 最小值
     private int mMaxValue; // 最大值
-    private int mStripeWidth; // 色条宽
+    private int mRibbonWidth; // 色条宽
+
+    private int mStartAngle; // 起始角度
+    private int mSweepAngle; // 扫过角度
 
     private int mPointerRadius; // 三角形指针半径
     private int mCircleRadius; // 中心圆半径
 
     private float mRealTimeValue = 0.0f; // 实时值
 
-    private int mBigSliceRadius; // 大刻度半径
-    private int mSmallSliceRadius; // 小刻度半径
-    private int mNumMeaRadius; // 数字刻度半径
+    private int mBigScaleRadius; // 大刻度半径
+    private int mSmallScaleRadius; // 小刻度半径
+    private int mNumScaleRadius; // 数字刻度半径
 
     private int mViewColor_green; // 字体颜色
     private int mViewColor_yellow; // 字体颜色
@@ -56,29 +56,28 @@ public class NoiseboardView extends View {
 
     private int mViewWidth; // 控件宽度
     private int mViewHeight; // 控件高度
-    private float mCenterX;
-    private float mCenterY;
+    private float mCenterX;//中心点圆坐标x
+    private float mCenterY;//中心点圆坐标y
 
-    private Paint mPaintArc;//圆盘上大小刻度画笔
-    private Paint mPaintText;//圆盘上刻度值画笔
-    private Paint mPaintPointer;//绘制中心圆，指针
+    private Paint mPaintScale;//圆盘上大小刻度画笔
+    private Paint mPaintScaleText;//圆盘上刻度值画笔
+    private Paint mPaintCirclePointer;//绘制中心圆，指针
     private Paint mPaintValue;//绘制实时值
-    private Paint mPaintStripe;//绘制色带
+    private Paint mPaintRibbon;//绘制色带
 
-    private RectF mRectStripe;
-    private Rect mRectMeasures;
-    private Rect mRectRealText;
-    private Path path;
+    private RectF mRectRibbon;//存储色带的矩形数据
+    private Rect mRectScaleText;//存储刻度值的矩形数据
+    private Path path;//绘制指针的路径
 
-    private int mSmallSliceCount; // 短刻度个数
-    private float mBigSliceAngle; // 大刻度等分角度
-    private float mSmallSliceAngle; // 小刻度等分角度
+    private int mSmallScaleCount; // 小刻度总数
+    private float mBigScaleAngle; // 相邻两个大刻度之间的角度
+    private float mSmallScaleAngle; // 相邻两个小刻度之间的角度
 
-    private String[] mGraduations; // 等分的刻度值
-    private float initAngle;
+    private String[] mGraduations; // 每个大刻度的刻度值
+    private float initAngle;//指针实时角度
 
     private SweepGradient mSweepGradient ;//设置渐变
-    private int[] color = new int[7];
+    private int[] color = new int[7];//渐变颜色组
 
     public NoiseboardView(Context context) {
         this(context, null);
@@ -90,102 +89,70 @@ public class NoiseboardView extends View {
 
     public NoiseboardView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-
         //自定义属性
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.NoiseboardView, defStyleAttr, 0);
 
         mRadius = a.getDimensionPixelSize(R.styleable.NoiseboardView_radius, dpToPx(80));
-        mStartAngle = a.getInteger(R.styleable.NoiseboardView_startAngle, 180);
-        mSweepAngle = a.getInteger(R.styleable.NoiseboardView_sweepAngle, 200);
         mBigSliceCount = a.getInteger(R.styleable.NoiseboardView_bigSliceCount, 5);
-        mSliceCountInOneBigSlice = a.getInteger(R.styleable.NoiseboardView_sliceCountInOneBigSlice, 5);
-
-        mArcColor = a.getColor(R.styleable.NoiseboardView_arcColor, Color.WHITE);
-        mMeasureTextSize = a.getDimensionPixelSize(R.styleable.NoiseboardView_measureTextSize, spToPx(12));
-
+        mScaleCountInOneBigScale = a.getInteger(R.styleable.NoiseboardView_sliceCountInOneBigSlice, 5);
+        mScaleColor = a.getColor(R.styleable.NoiseboardView_scaleColor, Color.WHITE);
+        mScaleTextSize = a.getDimensionPixelSize(R.styleable.NoiseboardView_scaleTextSize, spToPx(12));
         mUnitText = a.getString(R.styleable.NoiseboardView_unitText);
         mUnitTextSize = a.getDimensionPixelSize(R.styleable.NoiseboardView_unitTextSize, spToPx(14));
-
         mMinValue = a.getInteger(R.styleable.NoiseboardView_minValue, 0);
-        mMaxValue = a.getInteger(R.styleable.NoiseboardView_maxValue, 100);
-        mStripeWidth = a.getDimensionPixelSize(R.styleable.NoiseboardView_stripeWidth, 0);
+        mMaxValue = a.getInteger(R.styleable.NoiseboardView_maxValue, 150);
+        mRibbonWidth = a.getDimensionPixelSize(R.styleable.NoiseboardView_ribbonWidth, 0);
 
         a.recycle();
-
         init();
     }
 
     private void init() {
 
+        //起始角度是从水平正方向即（钟表3点钟方向）开始从0算的，扫过的角度是按顺时针方向算
+        mStartAngle = 175;
+        mSweepAngle = 190;
+
         mPointerRadius = mRadius / 3 * 2;
         mCircleRadius = mRadius / 17;
 
-        mSmallSliceRadius = mRadius - dpToPx(10);
-        mBigSliceRadius = mSmallSliceRadius - dpToPx(8);
-        mNumMeaRadius = mBigSliceRadius - dpToPx(2);
+        mSmallScaleRadius = mRadius - dpToPx(10);
+        mBigScaleRadius = mRadius - dpToPx(18);
+        mNumScaleRadius = mRadius - dpToPx(20);
 
-        mSmallSliceCount = mBigSliceCount * 5;
-        mBigSliceAngle = mSweepAngle / (float) mBigSliceCount;
-        mSmallSliceAngle = mBigSliceAngle / mSliceCountInOneBigSlice;
+        mSmallScaleCount = mBigSliceCount * 5;
+        mBigScaleAngle = mSweepAngle / (float) mBigSliceCount;
+        mSmallScaleAngle = mBigScaleAngle / mScaleCountInOneBigScale;
         mGraduations = getMeasureNumbers();
 
-        int totalRadius;
-        totalRadius = mRadius;
-
-        mCenterX = mCenterY = 0.0f;
-        if (mStartAngle <= 180 && mStartAngle + mSweepAngle >= 180) {
-            mViewWidth = totalRadius * 2 + getPaddingLeft() + getPaddingRight() + dpToPx(2) * 2;
-        } else {
-            float[] point1 = getCoordinatePoint(totalRadius, mStartAngle);
-            float[] point2 = getCoordinatePoint(totalRadius, mStartAngle + mSweepAngle);
-            float max = Math.max(Math.abs(point1[0]), Math.abs(point2[0]));
-            mViewWidth = (int) (max * 2 + getPaddingLeft() + getPaddingRight() + dpToPx(2) * 2);
-        }
-        if ((mStartAngle <= 90 && mStartAngle + mSweepAngle >= 90) ||
-                (mStartAngle <= 270 && mStartAngle + mSweepAngle >= 270)) {
-            mViewHeight = totalRadius * 2 + getPaddingLeft() + getPaddingRight() + dpToPx(2) * 2;
-        } else {
-            float[] point1 = getCoordinatePoint(totalRadius, mStartAngle);
-            float[] point2 = getCoordinatePoint(totalRadius, mStartAngle + mSweepAngle);
-            float max = Math.max(Math.abs(point1[1]), Math.abs(point2[1]));
-            mViewHeight = (int) (max * 2 + getPaddingLeft() + getPaddingRight() + dpToPx(2) * 2);
-        }
-
+        //确定控件的宽度 padding值，在构造方法执行完就被赋值
+        mViewWidth = getPaddingLeft() + mRadius * 2 + getPaddingRight() + dpToPx(4);
+        mViewHeight = mViewWidth;
         mCenterX = mViewWidth / 2.0f;
         mCenterY = mViewHeight / 2.0f;
 
-        if (mPaintArc == null) {
-            mPaintArc = new Paint();
-        }
-        mPaintArc.setAntiAlias(true);
-        mPaintArc.setColor(mArcColor);
-        mPaintArc.setStyle(Paint.Style.STROKE);
-        mPaintArc.setStrokeCap(Paint.Cap.ROUND);
+        mPaintScale = new Paint();
+        mPaintScale.setAntiAlias(true);
+        mPaintScale.setColor(mScaleColor);
+        mPaintScale.setStyle(Paint.Style.STROKE);
+        mPaintScale.setStrokeCap(Paint.Cap.ROUND);
 
-        if (mPaintText == null) {
-            mPaintText = new Paint();
-        }
-        mPaintText.setAntiAlias(true);
-        mPaintText.setColor(mArcColor);
-        mPaintText.setStyle(Paint.Style.STROKE);
+        mPaintScaleText = new Paint();
+        mPaintScaleText.setAntiAlias(true);
+        mPaintScaleText.setColor(mScaleColor);
+        mPaintScaleText.setStyle(Paint.Style.STROKE);
 
-        if (mPaintPointer == null) {
-            mPaintPointer = new Paint();
-        }
-        mPaintPointer.setAntiAlias(true);
+        mPaintCirclePointer = new Paint();
+        mPaintCirclePointer.setAntiAlias(true);
 
-        mRectMeasures = new Rect();
-        mRectRealText = new Rect();
+        mRectScaleText = new Rect();
         path = new Path();
 
-        if (mPaintValue == null) {
-            mPaintValue = new Paint();
-        }
+        mPaintValue = new Paint();
         mPaintValue.setAntiAlias(true);
         mPaintValue.setStyle(Paint.Style.STROKE);
         mPaintValue.setTextAlign(Paint.Align.CENTER);
         mPaintValue.setTextSize(mUnitTextSize);
-        mPaintValue.getTextBounds(trimFloat(mRealTimeValue), 0, trimFloat(mRealTimeValue).length(), mRectRealText);
 
         initAngle = getAngleFromResult(mRealTimeValue);
 
@@ -200,22 +167,25 @@ public class NoiseboardView extends View {
         color[4] = mViewColor_yellow;
         color[5] = mViewColor_orange;
         color[6] = mViewColor_red;
+
         //色带画笔
-        if (mPaintStripe == null) {
-            mPaintStripe = new Paint();
-        }
-        mPaintStripe.setAntiAlias(true);
-        mPaintStripe.setStyle(Paint.Style.STROKE);
-        mPaintStripe.setStrokeWidth(mStripeWidth);
-        int r ;
-        if (mStripeWidth > 0) {
-            r = mRadius + dpToPx(1) - mStripeWidth / 2;
-            mRectStripe = new RectF(mCenterX - r, mCenterY - r, mCenterX + r, mCenterY + r);
-        }
+        mPaintRibbon = new Paint();
+        mPaintRibbon.setAntiAlias(true);
+        mPaintRibbon.setStyle(Paint.Style.STROKE);
+        mPaintRibbon.setStrokeWidth(mRibbonWidth);
         mSweepGradient = new SweepGradient(mCenterX, mCenterY,color,null);
-        mPaintStripe.setShader(mSweepGradient);//设置渐变 从X轴正方向取color数组颜色开始渐变
+        mPaintRibbon.setShader(mSweepGradient);//设置渐变 从X轴正方向取color数组颜色开始渐变
+
+        if (mRibbonWidth > 0) {
+            int r  = mRadius - mRibbonWidth / 2 + dpToPx(1) ;
+            mRectRibbon = new RectF(mCenterX - r, mCenterY - r, mCenterX + r, mCenterY + r);
+        }
     }
 
+    /**
+     * 确定每个大刻度的值
+     * @return
+     */
     private String[] getMeasureNumbers() {
         String[] strings = new String[mBigSliceCount + 1];
         for (int i = 0; i <= mBigSliceCount; i++) {
@@ -230,116 +200,134 @@ public class NoiseboardView extends View {
         return strings;
     }
 
+    /**
+     * <dt>UNSPECIFIED :  0 << 30 = 0</dt>
+     * <dd>
+     *     父控件没有对子控件做限制，子控件可以是自己想要的尺寸
+     *     其实就是子空间在布局里没有设置宽高，但布局里添加控件都要设置宽高，所以这种情况暂时没碰到
+     * </dd>
+     *
+     * <dt>EXACTLY : 1 << 30 = 1073741824</dt>
+     * <dd>
+     *      父控件给子控件决定了确切大小，子控件将被限定在给定的边界里。
+     *      如果是填充父窗体(match_parent)，说明父控件已经明确知道子控件想要多大的尺寸了，也是这种模式
+     * </dd>
+     *
+     * <dt>AT_MOST : 2 << 30 = -2147483648</dt>
+     * <dd>
+     *      在布局设置wrap_content，父控件并不知道子控件到底需要多大尺寸（具体值），
+     *      需要子控件在onMeasure测量之后再让父控件给他一个尽可能大的尺寸以便让内容全部显示
+     *      如果在onMeasure没有指定控件大小，默认会填充父窗体，因为在view的onMeasure源码中，
+     *      AT_MOST（相当于wrap_content ）和EXACTLY （相当于match_parent ）两种情况返回的测量宽高都是specSize，
+     *      而这个specSize正是父控件剩余的宽高，所以默认onMeasure方法中wrap_content 和match_parent 的效果是一样的，都是填充剩余的空间。
+     * </dd>
+     *
+     * @param widthMeasureSpec
+     * @param heightMeasureSpec
+     */
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 
-        int widthMode = MeasureSpec.getMode(widthMeasureSpec);
-        int widthSize = MeasureSpec.getSize(widthMeasureSpec);
+        int widthMode = MeasureSpec.getMode(widthMeasureSpec);//从约束规范中获取模式
+        int widthSize = MeasureSpec.getSize(widthMeasureSpec);//从约束规范中获取尺寸
         int heightMode = MeasureSpec.getMode(heightMeasureSpec);
         int heightSize = MeasureSpec.getSize(heightMeasureSpec);
 
-        if (widthMode == MeasureSpec.EXACTLY) {
-            mViewWidth = dpToPx(widthSize);
-        } else {
-            if (widthMode == MeasureSpec.AT_MOST)
-                mViewWidth = Math.min(mViewWidth, widthSize);
-        }
+        //在布局中设置了具体值
+        if (widthMode == MeasureSpec.EXACTLY)
+            mViewWidth = widthSize;
+
+        //在布局中设置 wrap_content，控件就取能完全展示内容的宽度（同时需要考虑屏幕的宽度）
+        if (widthMode == MeasureSpec.AT_MOST)
+            mViewWidth = Math.min(mViewWidth, widthSize);
+
         if (heightMode == MeasureSpec.EXACTLY) {
-            mViewHeight = dpToPx(heightSize);
+            mViewHeight = heightSize;
         } else {
-            int totalRadius;
-            totalRadius = mRadius;
-            if (mStartAngle >= 180 && mStartAngle + mSweepAngle <= 360) {
-                mViewHeight = totalRadius + mCircleRadius + dpToPx(2) + dpToPx(25) +
-                        getPaddingTop() + getPaddingBottom() + mRectRealText.height();
-            } else {
-                float[] point1 = getCoordinatePoint(totalRadius, mStartAngle);
-                float[] point2 = getCoordinatePoint(totalRadius, mStartAngle + mSweepAngle);
-                float maxY = Math.max(Math.abs(point1[1]) - mCenterY, Math.abs(point2[1]) - mCenterY);
-                float f = mCircleRadius + dpToPx(2) + dpToPx(25) + mRectRealText.height();
-                float max = Math.max(maxY, f);
-                mViewHeight = (int) (max + totalRadius + getPaddingTop() + getPaddingBottom() + dpToPx(2) * 2);
-            }
-            if (widthMode == MeasureSpec.AT_MOST)
-                mViewHeight = Math.min(mViewHeight, widthSize);
+
+            float[] point1 = getCoordinatePoint(mRadius, mStartAngle);
+            float[] point2 = getCoordinatePoint(mRadius, mStartAngle + mSweepAngle);
+            float maxY = Math.max(Math.abs(point1[1]) - mCenterY, Math.abs(point2[1]) - mCenterY);
+            float f = mCircleRadius + dpToPx(2) + dpToPx(25) ;
+            float max = Math.max(maxY, f);
+            mViewHeight = (int) (max + mRadius + getPaddingTop() + getPaddingBottom() + dpToPx(2) * 2);
+
+            if (heightMode == MeasureSpec.AT_MOST)
+                mViewHeight = Math.min(mViewHeight, heightSize);
         }
 
-        Log.e("onMeasure","widthSize="+widthSize+",heightSize="+heightSize);
+        //保存测量宽度和测量高度
         setMeasuredDimension(mViewWidth, mViewHeight);
     }
 
 
     @Override
     protected void onDraw(Canvas canvas) {
-
         // 绘制色带
-        canvas.drawArc(mRectStripe, 170, 200, false, mPaintStripe);
+        canvas.drawArc(mRectRibbon, 170, 199, false, mPaintRibbon);
 
-        mPaintArc.setStrokeWidth(dpToPx(2));
+        mPaintScale.setStrokeWidth(dpToPx(2));
         for (int i = 0; i <= mBigSliceCount; i++) {
             //绘制大刻度
-            float angle = i * mBigSliceAngle + mStartAngle;
+            float angle = i * mBigScaleAngle + mStartAngle;
             float[] point1 = getCoordinatePoint(mRadius, angle);
-            float[] point2 = getCoordinatePoint(mBigSliceRadius, angle);
-            canvas.drawLine(point1[0], point1[1], point2[0], point2[1], mPaintArc);
+            float[] point2 = getCoordinatePoint(mBigScaleRadius, angle);
+            canvas.drawLine(point1[0], point1[1], point2[0], point2[1], mPaintScale);
 
             //绘制圆盘上的数字
-            mPaintText.setTextSize(mMeasureTextSize);
+            mPaintScaleText.setTextSize(mScaleTextSize);
             String number = mGraduations[i];
-            mPaintText.getTextBounds(number, 0, number.length(), mRectMeasures);
+            mPaintScaleText.getTextBounds(number, 0, number.length(), mRectScaleText);
             if (angle % 360 > 135 && angle % 360 < 215) {
-                mPaintText.setTextAlign(Paint.Align.LEFT);
+                mPaintScaleText.setTextAlign(Paint.Align.LEFT);
             } else if ((angle % 360 >= 0 && angle % 360 < 45) || (angle % 360 > 325 && angle % 360 <= 360)) {
-                mPaintText.setTextAlign(Paint.Align.RIGHT);
+                mPaintScaleText.setTextAlign(Paint.Align.RIGHT);
             } else {
-                mPaintText.setTextAlign(Paint.Align.CENTER);
+                mPaintScaleText.setTextAlign(Paint.Align.CENTER);
             }
-            float[] numberPoint = getCoordinatePoint(mNumMeaRadius, angle);
+            float[] numberPoint = getCoordinatePoint(mNumScaleRadius, angle);
             if (i == 0 || i == mBigSliceCount) {
-                canvas.drawText(number, numberPoint[0], numberPoint[1] + (mRectMeasures.height() / 2), mPaintText);
+                canvas.drawText(number, numberPoint[0], numberPoint[1] + (mRectScaleText.height() / 2), mPaintScaleText);
             } else {
-                canvas.drawText(number, numberPoint[0], numberPoint[1] + mRectMeasures.height(), mPaintText);
+                canvas.drawText(number, numberPoint[0], numberPoint[1] + mRectScaleText.height(), mPaintScaleText);
             }
         }
 
         //绘制小的子刻度
-        mPaintArc.setStrokeWidth(dpToPx(1));
-        for (int i = 0; i < mSmallSliceCount; i++) {
-            if (i % mSliceCountInOneBigSlice != 0) {
-                float angle = i * mSmallSliceAngle + mStartAngle;
+        mPaintScale.setStrokeWidth(dpToPx(1));
+        for (int i = 0; i < mSmallScaleCount; i++) {
+            if (i % mScaleCountInOneBigScale != 0) {
+                float angle = i * mSmallScaleAngle + mStartAngle;
                 float[] point1 = getCoordinatePoint(mRadius, angle);
-                float[] point2 = getCoordinatePoint(mSmallSliceRadius, angle);
+                float[] point2 = getCoordinatePoint(mSmallScaleRadius, angle);
 
-                mPaintArc.setStrokeWidth(dpToPx(1));
-                canvas.drawLine(point1[0], point1[1], point2[0], point2[1], mPaintArc);
+                mPaintScale.setStrokeWidth(dpToPx(1));
+                canvas.drawLine(point1[0], point1[1], point2[0], point2[1], mPaintScale);
             }
         }
 
         if (mRealTimeValue <= 40) {
             mPaintValue.setColor(mViewColor_green);
-            mPaintPointer.setColor(mViewColor_green);
+            mPaintCirclePointer.setColor(mViewColor_green);
         } else if (mRealTimeValue > 40 && mRealTimeValue <= 90) {
             mPaintValue.setColor(mViewColor_yellow);
-            mPaintPointer.setColor(mViewColor_yellow);
+            mPaintCirclePointer.setColor(mViewColor_yellow);
         } else if (mRealTimeValue > 90 && mRealTimeValue <= 120) {
             mPaintValue.setColor(mViewColor_orange);
-            mPaintPointer.setColor(mViewColor_orange);
+            mPaintCirclePointer.setColor(mViewColor_orange);
         } else {
             mPaintValue.setColor(mViewColor_red);
-            mPaintPointer.setColor(mViewColor_red);
+            mPaintCirclePointer.setColor(mViewColor_red);
         }
 
-        //绘制实时值
-        canvas.drawText(trimFloat(mRealTimeValue)+" "+ mUnitText, mCenterX, mCenterY - mRadius / 3 , mPaintValue);
-
         //绘制中心点的圆
-        mPaintPointer.setStyle(Paint.Style.STROKE);
-        mPaintPointer.setStrokeWidth(dpToPx(4));
-        canvas.drawCircle(mCenterX, mCenterY, mCircleRadius + dpToPx(3), mPaintPointer);
+        mPaintCirclePointer.setStyle(Paint.Style.STROKE);
+        mPaintCirclePointer.setStrokeWidth(dpToPx(4));
+        canvas.drawCircle(mCenterX, mCenterY, mCircleRadius + dpToPx(3), mPaintCirclePointer);
 
         //绘制三角形指针
         path.reset();
-        mPaintPointer.setStyle(Paint.Style.FILL);
+        mPaintCirclePointer.setStyle(Paint.Style.FILL);
         float[] point1 = getCoordinatePoint(mCircleRadius / 2, initAngle + 90);
         path.moveTo(point1[0], point1[1]);
         float[] point2 = getCoordinatePoint(mCircleRadius / 2, initAngle - 90);
@@ -347,10 +335,13 @@ public class NoiseboardView extends View {
         float[] point3 = getCoordinatePoint(mPointerRadius, initAngle);
         path.lineTo(point3[0], point3[1]);
         path.close();
-        canvas.drawPath(path, mPaintPointer);
+        canvas.drawPath(path, mPaintCirclePointer);
 
         // 绘制三角形指针底部的圆弧效果
-        canvas.drawCircle((point1[0] + point2[0]) / 2, (point1[1] + point2[1]) / 2, mCircleRadius / 2, mPaintPointer);
+        canvas.drawCircle((point1[0] + point2[0]) / 2, (point1[1] + point2[1]) / 2, mCircleRadius / 2, mPaintCirclePointer);
+
+        //绘制实时值
+        canvas.drawText(trimFloat(mRealTimeValue)+" "+ mUnitText, mCenterX, mCenterY - mRadius / 3 , mPaintValue);
     }
 
     private int dpToPx(int dp) {
@@ -394,15 +385,16 @@ public class NoiseboardView extends View {
             point[1] = (float) (mCenterY - Math.sin(arcAngle) * radius);
         }
 
+        Log.e("getCoordinatePoint","radius="+radius+",cirAngle="+cirAngle+",point[0]="+point[0]+",point[1]="+point[1]);
         return point;
     }
 
     /**
-     * 通过数值得到角度位置
+     * 通过实时数值得到指针角度
      */
     private float getAngleFromResult(float result) {
         if (result > mMaxValue)
-            return mMaxValue;
+            return 360.0f;
         return mSweepAngle * (result - mMinValue) / (mMaxValue - mMinValue) + mStartAngle;
     }
 

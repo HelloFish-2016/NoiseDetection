@@ -60,7 +60,7 @@ public class MainActivity extends FragmentActivity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.act_main);
         ButterKnife.bind(this);
-        init();
+//        init();
         media=new NoiseRecorder(handler);
         bt_start.setText("开始测试");
         setChartLineView();
@@ -131,12 +131,12 @@ public class MainActivity extends FragmentActivity{
                     }else{
                         subString=String.valueOf(degree).substring(0, 2);
                     }
-
                     Integer integer=Integer.parseInt(subString);
                     if (integer != 0)
                         degreeList.add(integer);
 
-                    dashboardView.setRealTimeValue(integer);
+                    if (dashboardView != null)
+                        dashboardView.setRealTimeValue(integer);
                     break;
                 default:
                     break;
